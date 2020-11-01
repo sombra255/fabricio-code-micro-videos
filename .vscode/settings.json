@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
         "generos"
-    ]
+    ],
+    "better-phpunit.phpunitBinary": "/workspace/www/vendor/bin/phpunit"
 }

@@ -11,6 +11,6 @@ class GenerosTableSeeder extends Seeder
      */
     public function run()
     {
-        //
+        factory(\App\Models\Genero::class, 10)->create();
     }
 }
