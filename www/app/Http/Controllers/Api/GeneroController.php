@@ -21,7 +21,9 @@ class GeneroController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, $this->rules);
-        return Genero::create($request->all());
+        $genero = Genero::create($request->all());
+        $genero->refresh();
+        return $genero;
     }
 
     public function show(Genero $genero)

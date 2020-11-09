@@ -71,6 +71,4 @@ class GeneroTest extends TestCase
         $this->assertCount(2, $generos);
         
     }
-
-    
 }
