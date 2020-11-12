@@ -28,4 +28,4 @@ ADD .docker/app/.env /templates/.env
 ADD .docker/app/entrypoint.sh /entrypoint.sh
 ADD .docker/app/.env.testing /templates/.env.testing
 
-USER www-data
+#USER www-data
