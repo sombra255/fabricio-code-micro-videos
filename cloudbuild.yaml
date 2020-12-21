@@ -2,37 +2,37 @@ steps:
 
 #STEP 0
 - id: "Rodando docker-compose"
-  name: 'gcr.io/$PROJECT_ID/docker-compose:1.24.0'
-  args: ['-f', 'docker-compose.yaml', 'up', '-d']
+  name: 'docker/compose:1.26.2'
+  args: ['-f', 'docker-compose.yaml', 'up', '-d', '--build']
 
 #STEP 1
 - id: "Chown in /var/www"
-  name: 'gcr.io/cloud-builders/docker'
+  name: 'docker'
   args: ['exec', '-u', 'root', '-t', 'app', 'chown', '-R', 'www-data:www-data', '/var/www']
 
 #STEP 2
 - id: "Rodando composer"
-  name: 'gcr.io/cloud-builders/docker'
+  name: 'docker'
   args: ['exec', '-t', 'app', 'composer', 'install']
 
 #STEP 3
 - id: "Copiando .env"
-  name: 'gcr.io/cloud-builders/docker'
+  name: 'docker'
   args: ['exec', '-t', 'app', 'cp', '.env.example', '.env']
 
 #STEP 4
 - id: "Copiando .env.testing"
-  name: 'gcr.io/cloud-builders/docker'
+  name: 'docker'
   args: ['exec', '-t', 'app', 'cp', '.env.testing.example', '.env.testing']
 
 #STEP 5
 - id: "Rodando migrations"
-  name: 'gcr.io/cloud-builders/docker'
+  name: 'docker'
   args: ['exec', '-t', 'app', 'php', '/var/www/artisan', 'migrate']
 
 #STEP 6
 - id: "Rodando phpunit"
-  name: 'gcr.io/cloud-builders/docker'
+  name: 'docker'
   args: ['exec', '-t', 'app', 'php', '/var/www/vendor/bin/phpunit', '-c', '/var/www/phpunit.xml']
 
 # Push the new image to the registry.
