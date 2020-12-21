@@ -6,41 +6,56 @@ use App\Http\Controllers\Controller;
 use App\Models\Genero;
 use Illuminate\Http\Request;
 
-class GeneroController extends Controller
+class GeneroController extends BasicCrudController
 {
     private $rules = [
         'name' => 'required|max:255',
         'is_active' => 'boolean'
     ];
 
-    public function index()
+    protected function model()
     {
-        return Genero::all();
+        return Genero::class;
     }
 
-    public function store(Request $request)
+    protected function rulesStore()
     {
-        $this->validate($request, $this->rules);
-        $genero = Genero::create($request->all());
-        $genero->refresh();
-        return $genero;
+        return $this->rules;
     }
 
-    public function show(Genero $genero)
+    protected function rulesUpdate()
     {
-        return $genero;
+        return $this->rules;
     }
 
-    public function update(Request $request, Genero $genero)
-    {
-        $this->validate($request, $this->rules);
-        $genero->update($request->all());
-        return $genero;
-    }
+    // public function index()
+    // {
+    //     return Genero::all();
+    // }
 
-    public function destroy(Genero $genero)
-    {
-        $genero->delete();
-        return response()->noContent();
-    }
+    // public function store(Request $request)
+    // {
+    //     $this->validate($request, $this->rules);
+    //     $genero = Genero::create($request->all());
+    //     $genero->refresh();
+    //     return $genero;
+    // }
+
+    // public function show(Genero $genero)
+    // {
+    //     return $genero;
+    // }
+
+    // public function update(Request $request, Genero $genero)
+    // {
+    //     $this->validate($request, $this->rules);
+    //     $genero->update($request->all());
+    //     return $genero;
+    // }
+
+    // public function destroy(Genero $genero)
+    // {
+    //     $genero->delete();
+    //     return response()->noContent();
+    // }
 }

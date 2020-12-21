@@ -1,0 +1,32 @@
+steps:
+
+#STEP 0
+- name: 'docker/compose:1.26.2'
+  args: ['up', '-d', '--build']
+
+#STEP 1
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: ['tag', 'workspace_micro-videos-app:latest', 'gcr.io/fast-art-289820/workspace_micro-videos-app:$SHORT_SHA']
+
+#STEP 2
+- name: 'docker'
+  args: ['exec', 'micro-videos-app', 'composer','install']
+
+#STEP 3
+# - name: 'docker'
+#   args: ['exec', 'micro-videos-app', 'cp','/var/www/.env.example','/var/www/.env']
+
+#STEP 4
+- name: 'docker'
+  args: ['exec', 'micro-videos-app', 'php','artisan','key:generate']
+
+#STEP 5
+- name: 'docker'
+  args: ['exec', 'micro-videos-app', 'php','artisan','migrate']
+
+#STEP 6
+- name: 'docker'
+  args: ['exec', 'micro-videos-app', 'vendor/bin/phpunit']
+
+# Push the new image to the registry.
+# images: ['gcr.io/fast-art-289820/workspace_micro-videos-app:$SHORT_SHA']
