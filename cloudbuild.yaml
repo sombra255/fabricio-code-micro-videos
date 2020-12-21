@@ -5,6 +5,10 @@ steps:
   name: 'docker/compose:1.26.2'
   args: ['-f', 'docker-compose.yaml', 'up', '-d', '--build']
 
+- id: "test"
+  name: 'docker'
+  args: ['ps']
+
 #STEP 1
 - id: "Chown in /var/www"
   name: 'docker'
