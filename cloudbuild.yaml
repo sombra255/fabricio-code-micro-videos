@@ -10,30 +10,25 @@ steps:
   name: 'docker'
   args: ['exec', '-u', 'root', '-t', 'micro-videos-app', 'chown', '-R', 'www-data:www-data', '/var/www']
 
-# #test
-# - id: "test"
-#   name: 'docker'
-#   args: ['exec', '-t', 'micro-videos-app', 'ls']
-
-# #STEP 2
-# - id: "Rodando composer"
-#   name: 'docker'
-#   args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
-
-#STEP 3
+#STEP 2
 - id: "Copiando .env"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.example', '.env']
 
-#STEP 4
+#STEP 3
 - id: "Copiando .env.testing"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.testing.example', '.env.testing']
 
+#STEP 4
+- id: "Rodando key:generate"
+  name: 'docker'
+  args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'key:generate']
+
 #STEP 5
 - id: "Rodando migrations"
   name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'php', '/var/www/artisan', 'migrate']
+  args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'migrate']
 
 #STEP 6
 - id: "Rodando phpunit"
