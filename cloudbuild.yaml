@@ -10,15 +10,15 @@ steps:
   name: 'docker'
   args: ['exec', '-u', 'root', '-t', 'micro-videos-app', 'chown', '-R', 'www-data:www-data', '/var/www']
 
-#test
-- id: "test"
-  name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'ls']
+# #test
+# - id: "test"
+#   name: 'docker'
+#   args: ['exec', '-t', 'micro-videos-app', 'ls']
 
-#STEP 2
-- id: "Rodando composer"
-  name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
+# #STEP 2
+# - id: "Rodando composer"
+#   name: 'docker'
+#   args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
 
 #STEP 3
 - id: "Copiando .env"
