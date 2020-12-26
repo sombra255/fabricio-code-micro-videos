@@ -23,7 +23,7 @@ steps:
 #STEP 3.1
 - id: "Rodando composer"
   name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'composer', 'update']
+  args: ['exec', '-t', 'micro-videos-app', 'composer', 'update', '--no-interaction']
 
 #STEP 4
 - id: "Rodando key:generate"
