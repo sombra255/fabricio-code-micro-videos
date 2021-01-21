@@ -2,7 +2,7 @@ steps:
 
 #STEP 0
 - id: "Rodando docker-compose"
-  name: 'docker/compose:1.26.2'
+  name: 'docker/compose:1.27.4'
   args: ['-f', 'docker-compose.yaml', 'up', '-d', '--build']
 
 #STEP 1

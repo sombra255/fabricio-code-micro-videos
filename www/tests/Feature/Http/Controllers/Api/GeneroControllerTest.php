@@ -2,11 +2,15 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\GeneroController;
+use App\Models\Category;
 use App\Models\Genero;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Http\Request;
+use Tests\Exceptions\TestException;
 use Tests\Traits\TestValidations, Tests\Traits\TestSaves;
 
 class GeneroControllerTest extends TestCase
@@ -44,7 +48,8 @@ class GeneroControllerTest extends TestCase
     public function testInvalidationDataAttributeName()
     {
         $data = [
-            'name' => ''
+            'name' => '',
+            'categories_id' => ''
         ];
         $this->assertInvalidationInStoreAction($data, 'required');
         // $response = $this->json('POST', route('generos.store'), []);
@@ -90,6 +95,24 @@ class GeneroControllerTest extends TestCase
             'is_active' => 'a'
         ];
         $this->assertInvalidationInStoreAction($data, 'boolean');
+
+        $data = [
+            'categories_id' => 'a'
+        ];
+        $this->assertInvalidationInStoreAction($data, 'array');
+
+        $data = [
+            'categories_id' => [100]
+        ];
+        $this->assertInvalidationInStoreAction($data, 'exists');
+
+        $category = factory(Category::class)->create();
+        $category->delete();
+        $data = [
+            'categories_id' => [$category->id]
+        ];
+        $this->assertInvalidationInStoreAction($data, 'exists');
+
         // $response = $this->json('POST', route('generos.store', []), [
         //     'is_active' => 'a'
         // ]);
@@ -105,7 +128,8 @@ class GeneroControllerTest extends TestCase
     {
         // $genero = factory(Genero::class)->create();
         $data = [
-            'name' => ''
+            'name' => '',
+            'categories_id' => ''
         ];
         $this->assertInvalidationInUpdateAction($data, 'required');
         // $response = $this->json('PUT', route('generos.update', ['genero' => $this->genero->id]), []);
@@ -129,6 +153,24 @@ class GeneroControllerTest extends TestCase
             'is_active' => 'a'
         ];
         $this->assertInvalidationInUpdateAction($data, 'boolean');
+
+        $data = [
+            'categories_id' => 'a'
+        ];
+        $this->assertInvalidationInUpdateAction($data, 'array');
+
+        $data = [
+            'categories_id' => [100]
+        ];
+        $this->assertInvalidationInUpdateAction($data, 'exists');
+
+        $category = factory(Category::class)->create();
+        $category->delete();
+        $data = [
+            'categories_id' => [$category->id]
+        ];
+        $this->assertInvalidationInUpdateAction($data, 'exists');
+
         // $response = $this->json('PUT', route('generos.update', ['genero' => $this->genero->id]), 
         // [
         //     'name' => str_repeat('a', 256),
@@ -147,10 +189,15 @@ class GeneroControllerTest extends TestCase
 
     public function testStore()
     {
+        $categoryId = factory(Category::class)->create()->id;
         $data = [
             'name' => 'test'
         ];
-        $this->assertStore($data, $data + ['name' => 'test', 'is_active' => true, 'deleted_at' => null]);
+        $response = $this->assertStore(
+            $data + ['categories_id' => [$categoryId]], 
+            $data + ['name' => 'test', 'is_active' => true, 'deleted_at' => null]
+        );
+            
         // $response = $this->json('POST', route('generos.store'), [
         //     'name' => 'test'
         // ]);
@@ -163,14 +210,18 @@ class GeneroControllerTest extends TestCase
         //     ->assertJson($genero->toArray());
         // $this->assertTrue($response->json('is_active'));
 
+        $response->assertJsonStructure([
+            'created_at', 'updated_at'
+        ]);
+        $this->assertHasCategory($response->json('id'), $categoryId);
+
         $data = [
             'name' => 'test',
             'is_active' => false
         ];
-        $response = $this->assertStore($data, $data + ['name' => 'test', 'is_active' => false, 'deleted_at' => null]);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
+        $response = $this->assertStore(
+            $data + ['categories_id' => [$categoryId]], 
+            $data + ['name' => 'test', 'is_active' => false, 'deleted_at' => null]);
 
         // $response = $this->json('POST', route('generos.store'), [
         //     'name' => 'test',
@@ -189,18 +240,25 @@ class GeneroControllerTest extends TestCase
             'is_active' => false
         ]);
 
+        $categoryId = factory(Category::class)->create()->id;
         $data = [
             'name' => 'test',
             'is_active' => true
         ];
 
-        $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
+        $response = $this->assertUpdate(
+            $data + ['categories_id' => [$categoryId]], 
+            $data + ['deleted_at' => null]);
+
         $response->assertJsonStructure([
             'created_at', 'updated_at'
         ]);
+        $this->assertHasCategory($response->json('id'), $categoryId);
 
         $data['name'] = 'test';
-        $this->assertUpdate($data, array_merge($data, ['name' => 'test']));
+        $this->assertUpdate(
+            $data + ['categories_id' => [$categoryId]],
+            array_merge($data, ['name' => 'test']));
 
         // $response = $this->json('PUT', route('generos.update', ['genero' => $genero->id]), [
         //     'name' => 'test',
@@ -225,6 +283,90 @@ class GeneroControllerTest extends TestCase
         //     ->assertJsonFragment([
         //         'name' => 'test'     
         // ]);
+    }
+
+    protected function assertHasCategory($generoId, $categoryId)            
+    {
+        $this->assertDatabaseHas('category_genero', [
+            'genero_id' => $generoId,
+            'category_id' => $categoryId,
+        ]);
+    }
+
+    public function testRollbackStore()
+    {
+        $controller = \Mockery::mock(GeneroController::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods();
+
+        $controller
+            ->shouldReceive('validate')
+            ->withAnyArgs()
+            ->andReturn([
+                'name' => 'test'
+            ]);
+
+        $controller
+            ->shouldReceive('rulesStore')
+            ->withAnyArgs()
+            ->andReturn([]);
+
+        $controller->shouldReceive('handleRelations')
+        ->once()
+        ->andThrow(new TestException());
+
+        $request = \Mockery::mock(Request::class);
+
+        $hasError = false;
+        try {
+            $controller->store($request);
+        } catch (\Tests\Exceptions\TestException $exception) {
+            $this->assertCount(1, Genero::all());
+            $hasError = true;
+        }
+        
+        $this->assertTrue($hasError);
+    }
+
+    public function testRollbackUpdate()
+    {
+        $controller = \Mockery::mock(GeneroController::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods();
+
+        $controller
+            ->shouldReceive('findOrFail')
+            ->withAnyArgs()
+            ->andReturn($this->genero);
+
+        $controller
+            ->shouldReceive('validate')
+            ->withAnyArgs()
+            ->andReturn([
+                'name' => 'test'
+            ]);
+
+        $controller
+            ->shouldReceive('rulesUpdate')
+            ->withAnyArgs()
+            ->andReturn([]);
+
+        $controller->shouldReceive('handleRelations')
+        ->once()
+        ->andThrow(new TestException());
+
+        $request = \Mockery::mock(Request::class);
+        
+        $hasError = false;
+        try {
+            $controller->update($request, 1);
+        } catch (\Tests\Exceptions\TestException $exception) {
+            $this->assertCount(1, Genero::all());
+            $hasError = true;
+        }
+        
+        $this->assertTrue($hasError);
+
     }
 
     public function testDelete()
