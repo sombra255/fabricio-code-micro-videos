@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Traits\UploadFiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use PhpParser\Node\Stmt\TryCatch;
 
 /**
  * App\Models\Video
@@ -42,7 +44,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Video extends Model
 {
-    use SoftDeletes, \App\Models\Traits\Uuid;
+    use SoftDeletes, \App\Models\Traits\Uuid, UploadFiles;
 
     const NO_RATING = 'L';
     const RATING_LIST = [self::NO_RATING, '10', '12', '14', '16', '18'];
@@ -56,6 +58,7 @@ class Video extends Model
         'duration'
     ];
     public $incrementing = false;
+    public static $fileFields = ['video_file'];
     protected $dates = ['deleted_at'];
 
     protected $casts = [
@@ -65,11 +68,71 @@ class Video extends Model
         'duration' => 'integer'
     ];
 
+    public static function create(array $attributes = [])
+    {
+        $files = self::extractFiles($attributes);
+        try {
+            \DB::beginTransaction();
+            $obj = static::query()->create($attributes);
+            static::handleRelations($obj, $attributes);
+
+            //uploads
+            $obj->uploadFiles($files);
+
+            \DB::commit();
+            return $obj;
+        } catch (\Exception $e) {
+            if(isset($obj)){
+                //excluir arquivos de upload
+            }
+            \DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function update(array $attributes = [], array $options = [])
+    {
+        $files = self::extractFiles($attributes);
+        try {
+            \DB::beginTransaction();
+            $saved = parent::update($attributes, $options);
+            static::handleRelations($this, $attributes);
+            if($saved){
+                //uploads
+                $this->uploadFiles($files);
+                //excluir
+            }
+            //uploads
+            \DB::commit();
+            return $saved;
+        } catch (\Exception $e) {
+            //excluir os arquivos de uploads
+            \DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public static function handleRelations($video, array $attributes = [])
+    {
+        if(isset($attributes['categories_id'])){
+            $video->categories()->sync($attributes['categories_id']);
+        }
+
+        if(isset($attributes['generos_id'])){
+            $video->generos()->sync($attributes['generos_id']);
+        }
+    }
+
     public function categories(){
         return $this->belongsToMany(Category::class)->withTrashed();
     }
 
     public function generos(){
         return $this->belongsToMany(Genero::class)->withTrashed();
+    }
+
+    protected function uploadDir()
+    {
+        return $this->id;
     }
 }
