@@ -55,10 +55,12 @@ class Video extends Model
         'year_launched',
         'opened',
         'rating',
-        'duration'
+        'duration',
+        'video_file',
+        'thumb_file'
     ];
     public $incrementing = false;
-    public static $fileFields = ['video_file'];
+    public static $fileFields = ['video_file', 'thumb_file'];
     protected $dates = ['deleted_at'];
 
     protected $casts = [
@@ -84,6 +86,7 @@ class Video extends Model
         } catch (\Exception $e) {
             if(isset($obj)){
                 //excluir arquivos de upload
+                $obj->deleteFiles($files);
             }
             \DB::rollBack();
             throw $e;
@@ -104,9 +107,13 @@ class Video extends Model
             }
             //uploads
             \DB::commit();
+            if($saved && count($files)){
+                $this->deleteOldFiles();
+            }
             return $saved;
         } catch (\Exception $e) {
             //excluir os arquivos de uploads
+            $this->deleteFiles($files);
             \DB::rollBack();
             throw $e;
         }

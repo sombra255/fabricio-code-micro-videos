@@ -1,41 +1,59 @@
 steps:
 
 #STEP 0
+- id: "decrypt kms - generate service-account-storage.json"
+  name: 'gcr.io/cloud-builders/gcloud'
+  args: 
+        - kms
+        - decrypt
+        - --ciphertext-file=./storage/credentials/google/service-account-storage.json.enc
+        - --plaintext-file=./storage/credentials/google/service-account-storage.json
+        - --location=global
+        - --keyring=testing-lesson
+        - --key=service-account
+
+#STEP 1
 - id: "Rodando docker-compose"
   name: 'docker/compose:1.28.2'
   args: ['-f', 'docker-compose.yaml', 'up', '-d', '--build']
+  env:
+    - GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID
+    - GOOGLE_CLOUD_KEY_FILE=service-account-storage.json
+    - GOOGLE_CLOUD_STORAGE_BUCKET=code_micro_videos_fabricio
+    - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/code_micro_videos_fabricio
+    - TESTING_PROD=true
 
-#STEP 1
+#STEP 2
 - id: "Chown in /var/www"
   name: 'docker'
   args: ['exec', '-u', 'root', '-t', 'micro-videos-app', 'chown', '-R', 'www-data:www-data', '/var/www']
 
-#STEP 2
+#STEP 3
 - id: "Copiando .env"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.example', '.env']
 
-#STEP 3
+#STEP 4
 - id: "Copiando .env.testing"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.testing.example', '.env.testing']
 
-#STEP 4
+#STEP 5
 - id: "Rodando composer"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'composer', 'update', '--no-interaction']
 
-#STEP 5
+#STEP 6
 - id: "Rodando key:generate"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'key:generate']
 
-#STEP 6
+#STEP 7
 - id: "Rodando migrations"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'php', 'artisan', 'migrate']
 
-#STEP 7
+#STEP 8
 - id: "Rodando phpunit"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'php', '/var/www/vendor/bin/phpunit', '-c', '/var/www/phpunit.xml']
