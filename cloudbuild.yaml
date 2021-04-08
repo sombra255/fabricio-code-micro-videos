@@ -14,14 +14,14 @@ steps:
 
 #STEP 1
 - id: "Rodando docker-compose"
-  name: 'gcr.io/$PROJECT_ID/docker-compose:1.24.0'
-  args: ['-f', 'docker-compose.yaml', 'up', '-d', '--build']
+  name: 'docker/compose:1.28.2'
+  args: ['-f', 'docker-compose.yaml', 'up', '-d', '--build-arg']
   env:
-    - GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID
-    - GOOGLE_CLOUD_KEY_FILE=service-account-storage.json
-    - GOOGLE_CLOUD_STORAGE_BUCKET=code_micro_videos_fabricio
-    - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/code_micro_videos_fabricio
-    - TESTING_PROD=true
+    - 'GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID'
+    - 'GOOGLE_CLOUD_KEY_FILE=service-account-storage.json'
+    - 'GOOGLE_CLOUD_STORAGE_BUCKET=code_micro_videos_fabricio'
+    - 'GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/code_micro_videos_fabricio'
+    - 'TESTING_PROD=true'
 
 #STEP 2
 - id: "Chown in /var/www"
