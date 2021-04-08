@@ -7,7 +7,7 @@ trait TestProd
 {
    protected function skipTestIfNotProd($message = '')     
    {
-       if($this->isTestingProd()){
+       if(!$this->isTestingProd()){
             $this->markTestSkipped($message);
        }
    }
