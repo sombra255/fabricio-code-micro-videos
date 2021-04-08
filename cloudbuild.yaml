@@ -14,7 +14,7 @@ steps:
 
 #STEP 1
 - id: "Rodando docker-compose"
-  name: 'docker/compose:1.28.2'
+  name: 'gcr.io/$PROJECT_ID/docker-compose:1.24.0'
   args: ['-f', 'docker-compose.yaml', 'up', '-d', '--build']
   env:
     - GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID
