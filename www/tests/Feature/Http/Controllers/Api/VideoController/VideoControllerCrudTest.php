@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Api\VideoController;
 use App\Models\Category;
 use App\Models\Genero;
 use App\Models\Video;
+use Illuminate\Support\Arr;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
@@ -97,9 +98,9 @@ class VideoControllerCrudTest extends BaseVideoControllerTestCase
 
         $category = factory(Category::class)->create();
         $category->delete();
-        $data = [
-            'categories_id' => [$category->id]
-        ];
+        // $data = [
+        //     'categories_id' => [$this->category->id]
+        // ];
         $this->assertInvalidationInStoreAction($data, 'exists');
         $this->assertInvalidationInUpdateAction($data, 'exists');
     }
@@ -118,44 +119,39 @@ class VideoControllerCrudTest extends BaseVideoControllerTestCase
         $this->assertInvalidationInStoreAction($data, 'exists');
         $this->assertInvalidationInUpdateAction($data, 'exists');
 
-        $genero = factory(Genero::class)->create();
-        $genero->delete();
-        $data = [
-            'generos_id' => [$genero->id]
-        ];
+        // $genero = factory(Genero::class)->create();
+        // $genero->delete();
+        // $data = [
+        //     'generos_id' => [$this->genero->id]
+        // ];
         $this->assertInvalidationInStoreAction($data, 'exists');
         $this->assertInvalidationInUpdateAction($data, 'exists');
     }
 
     public function testSaveWithoutFiles()
     {
-        $category = factory(Category::class)->create();
-        $genero = factory(Genero::class)->create();
-        $genero->categories()->sync($category->id);
+        // $category = factory(Category::class)->create();
+        // $genero = factory(Genero::class)->create();
+        // $genero->categories()->sync($this->category->id);
+
+        $testData = Arr::except($this->sendData, ['categories_id', 'generos_id']);
 
         $data = [
             [
-                'send_data' => $this->sendData + [
-                    'categories_id' => [$category->id],
-                    'generos_id' => [$genero->id]
-                ],
-                'test_data' => $this->sendData + ['opened' => false]
+                'send_data' => $this->sendData,
+                'test_data' => $testData + ['opened' => false]
             ],
             [
                 'send_data' => $this->sendData + [
-                    'opened' => true,
-                    'categories_id' => [$category->id],
-                    'generos_id' => [$genero->id]
+                    'opened' => true
                 ],
-                'test_data' => $this->sendData + ['opened' => true]
+                'test_data' => $testData + ['opened' => true]
             ],
             [
                 'send_data' => $this->sendData + [
-                    'rating' => Video::RATING_LIST[1],
-                    'categories_id' => [$category->id],
-                    'generos_id' => [$genero->id]
+                    'rating' => Video::RATING_LIST[1]
                 ],
-                'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]]
+                'test_data' => $testData + ['rating' => Video::RATING_LIST[1]]
             ],
 
         ];
@@ -177,33 +173,28 @@ class VideoControllerCrudTest extends BaseVideoControllerTestCase
 
     public function testSave()
     {
-        $category = factory(Category::class)->create();
-        $genero = factory(Genero::class)->create();
-        $genero->categories()->sync($category->id);
+        // $category = factory(Category::class)->create();
+        // $genero = factory(Genero::class)->create();
+        // $genero->categories()->sync($this->category->id);
+
+        $testData = Arr::except($this->sendData, ['categories_id', 'generos_id']);
 
         $data = [
             [
-                'send_data' => $this->sendData + [
-                    'categories_id' => [$category->id],
-                    'generos_id' => [$genero->id]
-                ],
-                'test_data' => $this->sendData + ['opened' => false]
+                'send_data' => $this->sendData,
+                'test_data' => $testData + ['opened' => false]
             ],
             [
                 'send_data' => $this->sendData + [
-                    'opened' => true,
-                    'categories_id' => [$category->id],
-                    'generos_id' => [$genero->id]
+                    'opened' => true
                 ],
-                'test_data' => $this->sendData + ['opened' => true]
+                'test_data' => $testData + ['opened' => true]
             ],
             [
                 'send_data' => $this->sendData + [
-                    'rating' => Video::RATING_LIST[1],
-                    'categories_id' => [$category->id],
-                    'generos_id' => [$genero->id]
+                    'rating' => Video::RATING_LIST[1]
                 ],
-                'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]]
+                'test_data' => $testData + ['rating' => Video::RATING_LIST[1]]
             ]
         ];
 
