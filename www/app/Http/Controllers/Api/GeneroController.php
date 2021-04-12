@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\GeneroResource;
 use App\Models\Genero;
 use Illuminate\Http\Request;
 
@@ -24,7 +25,8 @@ class GeneroController extends BasicCrudController
             return $obj;
         });
         $obj->refresh();
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     public function update(Request $request, $id)
@@ -37,7 +39,8 @@ class GeneroController extends BasicCrudController
             $self->handleRelations($obj, $request);
             return $obj;
         });
-        return $obj;
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     protected function handleRelations($genero, Request $request)
@@ -58,6 +61,15 @@ class GeneroController extends BasicCrudController
     protected function rulesUpdate()
     {
         return $this->rules;
+    }
+
+    protected function resourceCollection()
+    {
+        return $this->resource();
+    }
+
+    protected function resource(){
+        return GeneroResource::class;
     }
 
     // public function index()
